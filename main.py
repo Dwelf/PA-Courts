@@ -37,8 +37,9 @@ def run(playwright: Playwright) -> list:
     grabbed_docket_numbers = []
 
     print('Scraping Docket Numbers')
-    for date_range in tqdm(date_ranges):
+    for date_range in date_ranges:
         try:
+            print(f'{date_range[0]} to {date_range[1]}')
             start_date_enter.fill(date_range[0])
             end_date_enter.fill(date_range[1])
 
@@ -48,7 +49,7 @@ def run(playwright: Playwright) -> list:
             time.sleep(random.randint(1, 3))
 
             tr_count = page.locator('xpath=//tr').count()
-            for i in range(tr_count):
+            for i in tqdm(range(tr_count)):
                 row_data = {'query_start_date': date_range[0], 'query_end_date': date_range[1]}
 
                 tr = page.locator(f'xpath=//tr').nth(i)
@@ -87,7 +88,6 @@ def run(playwright: Playwright) -> list:
 
 
 def get_date_ranges(start: dt.datetime, end: dt.datetime, step: int) -> list:
-    print((end - start).days)
     date_ranges = []
 
     date_step_less_1 = dt.timedelta(days=step - 1)
@@ -111,9 +111,6 @@ def get_date_ranges(start: dt.datetime, end: dt.datetime, step: int) -> list:
     return date_ranges
 
 
-print(get_date_ranges(START, END, STEP))
-quit()
-
 if __name__ == '__main__':
     print('=' * 34)
     print('PA Court Data Puller Initiated')
@@ -123,9 +120,16 @@ if __name__ == '__main__':
         docket_numbers = run(playwright)
 
     df = pd.DataFrame(docket_numbers)
+    df.drop_duplicates(subset=['docket_number', 'link_1'], inplace=True)
+
+    if os.path.isdir('Docket Info') is False:
+        os.mkdir('Docket Info')
+
     df.to_csv(os.path.join(
         'Docket Info', f'docket_info {df["query_start_date"].min()} | {df["query_end_date"].max()}.csv'
     ), index=False)
 
     print(f'Docket Numbers Grabbed: {len(df.index)}')
+
+    print('\nDownloading PDFs')
     download_pdfs(df)

@@ -9,6 +9,7 @@ import random
 
 
 BASE_URL = 'https://ujsportal.pacourts.us'
+WAIT_RANGE = (2, 5)  # range for seconds to wait between pulls, inclusive
 
 
 def main(df: pd.DataFrame):
@@ -21,17 +22,18 @@ def main(df: pd.DataFrame):
         with open('tested_proxies.txt', 'r') as f:
             proxies = f.read().split('\n')
 
-        print('Downloading PDFs')
         for i, r in tqdm(df.iterrows()):
             year = r['docket_number'].split('-')[-1]
             save_dir = os.path.join('PDFs', year)
+
             if os.path.isdir(save_dir) is False:
                 os.mkdir(save_dir)
+
             file_name = f'{r["docket_number"]}|{r["link_1"].split("=")[-1].replace("%", "-")}.pdf'
             save_path = os.path.join(save_dir, file_name)
             url = f'{BASE_URL}{r["link_1"]}'
 
-            time.sleep(random.randint(2, 5))
+            time.sleep(random.randint(WAIT_RANGE[0], WAIT_RANGE[1]))
 
             requests_cookies = {cookie['name']: cookie['value'] for cookie in context.cookies()}
 
