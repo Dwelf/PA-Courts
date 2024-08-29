@@ -13,7 +13,7 @@ import os
 
 
 START = dt.datetime(year=2010, month=1, day=1)
-END = dt.datetime(year=2010, month=6, day=30)
+END = dt.datetime(year=2024, month=8, day=28)
 STEP = 179
 
 
@@ -122,6 +122,8 @@ if __name__ == '__main__':
     df = pd.DataFrame(docket_numbers)
     df.drop_duplicates(subset=['docket_number', 'link_1'], inplace=True)
 
+    df.to_csv('docket_numbers.csv', index=False)
+
     if os.path.isdir('Docket Info') is False:
         os.mkdir('Docket Info')
 
@@ -130,6 +132,6 @@ if __name__ == '__main__':
     ), index=False)
 
     print(f'Docket Numbers Grabbed: {len(df.index)}')
-
+    quit()
     print('\nDownloading PDFs')
     download_pdfs(df)
